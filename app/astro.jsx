@@ -13,6 +13,22 @@ const houseSlots = [
 ];
 
 const charts = {
+  life: {
+    eyebrow: 'Personal timeline',
+    title: 'Life',
+    description: 'Keep meaningful moments, plans, and reflections in one place.',
+    ascendant: 'Saved moments',
+    date: 'Your personal record',
+    placements: {},
+  },
+   gochara: {
+    eyebrow: 'Live planetary motion',
+    title: 'Transit',
+    description: 'Watch the current planets move through your houses in real time.',
+    ascendant: 'Today  •  13 September 2026',
+    date: 'Transit window  00:00 - 24:00',
+    placements: {},
+  },
   lagna: {
     eyebrow: 'Birth chart',
     title: 'Lagna kundali',
@@ -31,22 +47,8 @@ const charts = {
     placements: { 1: ['Ketu'], 2: ['Uranus'], 3: ['Neptune'], 4: ['Sun'], 5: ['Venus'], 6: [], 7: ['Rahu'], 8: [], 9: ['Jupiter'], 10: ['Mercury', 'Saturn', 'Pluto'], 11: [], 12: ['Moon', 'Mars'] },
     aspects: { Ketu: 'Jupiter, Mercury, Rahu, Sun, Venus', Uranus: 'Moon', Neptune: 'Jupiter, Rahu, Mars', Sun: 'Saturn, Mercury', Venus: 'Jupiter, Mercury, Ketu', Rahu: 'Saturn, Ketu, Mars', Jupiter: 'Ketu, Venus, Moon', Mercury: 'Sun', 'Moon / Mars': 'Saturn' },
   },
-  gochara: {
-    eyebrow: 'Live planetary motion',
-    title: 'Transit',
-    description: 'Watch the current planets move through your houses in real time.',
-    ascendant: 'Today  •  13 September 2026',
-    date: 'Transit window  00:00 - 24:00',
-    placements: {},
-  },
-  life: {
-    eyebrow: 'Personal timeline',
-    title: 'Life',
-    description: 'Keep meaningful moments, plans, and reflections in one place.',
-    ascendant: 'Saved moments',
-    date: 'Your personal record',
-    placements: {},
-  },
+ 
+  
 };
 
 const movingPlanets = [
@@ -404,7 +406,7 @@ const DetailsSummary = ({ activeTab, onTabChange }) => {
   );
 };
 
-const LifeSection = ({ entries, form, loading, saving, message, onChange, onSubmit }) => (
+const LifeSection = ({ entries, form, loading, saving, deletingId, message, onChange, onSubmit, onDelete }) => (
   <section className={styles.lifeSection}>
     <form className={styles.lifeForm} onSubmit={onSubmit}>
       <div className={styles.lifeFormGrid}>
@@ -433,8 +435,8 @@ const LifeSection = ({ entries, form, loading, saving, message, onChange, onSubm
     <div className={styles.lifeRecords}>
       <div className={styles.summaryTitle}>Saved life entries</div>
       {loading ? <p className={styles.lifeEmpty}>Loading entries...</p> : entries.length === 0 ? <p className={styles.lifeEmpty}>No life entries saved yet.</p> : <div className={styles.lifeTable}>
-        <div className={styles.lifeTableHeader}><span>Title</span><span>Date</span><span>Time</span><span>Comments</span></div>
-        {entries.map((entry) => <div className={styles.lifeTableRow} key={entry.id}><strong>{entry.title}</strong><span>{entry.date}</span><span>{entry.time ? entry.time.slice(0, 5) : 'Not set'}</span><span>{entry.comments || 'No comments'}</span></div>)}
+        <div className={styles.lifeTableHeader}><span>Title</span><span>Date</span><span>Time</span><span>Comments</span><span>Action</span></div>
+        {entries.map((entry) => <div className={styles.lifeTableRow} key={entry.id}><strong>{entry.title}</strong><span>{entry.date}</span><span>{entry.time ? entry.time.slice(0, 5) : 'Not set'}</span><span>{entry.comments || 'No comments'}</span><button type="button" className={styles.deleteLifeButton} onClick={() => onDelete(entry.id)} disabled={deletingId === entry.id}>{deletingId === entry.id ? 'Deleting...' : 'Delete'}</button></div>)}
       </div>}
     </div>
   </section>
@@ -448,6 +450,7 @@ const Astro = () => {
   const [lifeForm, setLifeForm] = useState({ title: '', date: '', time: '', comments: '' });
   const [lifeLoading, setLifeLoading] = useState(false);
   const [lifeSaving, setLifeSaving] = useState(false);
+  const [lifeDeletingId, setLifeDeletingId] = useState('');
   const [lifeMessage, setLifeMessage] = useState('');
   const chart = charts[activeChart];
   const isGochara = activeChart === 'gochara';
@@ -506,6 +509,23 @@ const Astro = () => {
     }
   };
 
+  const handleLifeDelete = async (id) => {
+    setLifeDeletingId(id);
+    setLifeMessage('');
+
+    try {
+      const response = await fetch(`/api/life?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+      const result = response.status === 204 ? null : await response.json();
+      if (!response.ok) throw new Error(result?.error || 'Unable to delete life entry.');
+      setLifeEntries((current) => current.filter((entry) => entry.id !== id));
+      setLifeMessage('Deleted.');
+    } catch (error) {
+      setLifeMessage(error.message);
+    } finally {
+      setLifeDeletingId('');
+    }
+  };
+
   return (
     <main className={styles.container}>
      
@@ -518,7 +538,7 @@ const Astro = () => {
           <div className={styles.chartMeta}><strong>{chart.ascendant}</strong><span>{chart.date}</span></div>
           {isGochara && <label className={styles.datePicker}>Position date<input type="date" value={selectedDate} onChange={(event) => setSelectedDate(event.target.value)} /></label>}
         </div>
-        {isLife ? <LifeSection entries={lifeEntries} form={lifeForm} loading={lifeLoading} saving={lifeSaving} message={lifeMessage} onChange={handleLifeChange} onSubmit={handleLifeSubmit} /> : <>
+        {isLife ? <LifeSection entries={lifeEntries} form={lifeForm} loading={lifeLoading} saving={lifeSaving} deletingId={lifeDeletingId} message={lifeMessage} onChange={handleLifeChange} onSubmit={handleLifeSubmit} onDelete={handleLifeDelete} /> : <>
         <div className={styles.chartContent}>
           <AstroChart chart={chart} isGochara={isGochara} transitPlanets={evaluatedPlanets} />
           <aside className={styles.insightPanel}>

@@ -80,7 +80,7 @@
 
 .container {
     min-height: 100vh;
-    background: transparent;
+    background: #0a1531;
     color: #ffffff;
     padding: 52px 7vw 80px;
     font-family: Georgia, 'Times New Roman', serif;
@@ -168,7 +168,7 @@
 }
 
 .workspace {
-    max-width: 1180px;
+    
     margin: auto;
     background: var(--color-bg);
    
@@ -843,7 +843,7 @@
 
 .datePicker input {
     border: 1px solid #d4c8b7;
-    color: #0f0f0f;
+    color: #ffffff;
     font: 13px Arial, sans-serif;
     padding: 7px 9px;
 }
@@ -937,8 +937,8 @@
 .lifeTableRow {
     display: grid;
     gap: 18px;
-    grid-template-columns: minmax(150px, 1.2fr) minmax(110px, .8fr) minmax(90px, .7fr) minmax(220px, 1.8fr);
-    min-width: 650px;
+    grid-template-columns: minmax(150px, 1.2fr) minmax(110px, .8fr) minmax(90px, .7fr) minmax(220px, 1.8fr) minmax(80px, auto);
+    min-width: 760px;
 }
 
 .lifeTableHeader {
@@ -957,6 +957,26 @@
 .lifeTableRow strong {
     color: #e8e1d6;
     font: 16px Georgia, serif;
+}
+
+.deleteLifeButton {
+    align-self: start;
+    background: transparent;
+    border: 1px solid #c78478;
+    color: #c78478;
+    cursor: pointer;
+    font: 700 11px Arial, sans-serif;
+    padding: 7px 9px;
+}
+
+.deleteLifeButton:hover {
+    background: #c78478;
+    color: #fff;
+}
+
+.deleteLifeButton:disabled {
+    cursor: wait;
+    opacity: .6;
 }
 
 @media (max-width: 700px) {
